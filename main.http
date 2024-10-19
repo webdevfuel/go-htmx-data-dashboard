@@ -1,0 +1,34 @@
+### list meilisearch indexes
+
+GET {{MEILISEARCH_HOST}}/indexes
+
+### add meilisearch index
+
+POST {{MEILISEARCH_HOST}}/indexes
+Content-Type: application/json
+
+{"uid": "users", "primaryKey": "id"}
+
+### add meilisearch index sortable attribute
+
+PUT {{MEILISEARCH_HOST}}/indexes/users/settings/sortable-attributes
+Content-Type: application/json
+
+["name", "email"]
+
+### add meilisearch document
+
+POST {{MEILISEARCH_HOST}}/indexes/users/documents
+Content-Type: application/json
+
+[
+  {"id": 2, "email": "johndoe@example.com", "name": "John Doe"}, {"id": 2, "email": "janedoe@example.com", "name": "Jane Doe"}
+]
+
+### search meilisearch users
+POST {{MEILISEARCH_HOST}}/indexes/users/search
+Content-Type: application/json
+
+{
+  "sort": ["name:asc"]
+}
