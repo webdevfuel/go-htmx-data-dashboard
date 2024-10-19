@@ -1,3 +1,6 @@
 data.ms/
 dumps/
 tmp/
+node_modules/
+static/
+*_templ.go
