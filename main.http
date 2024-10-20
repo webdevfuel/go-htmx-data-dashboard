@@ -39,5 +39,6 @@ Content-Type: application/json
 
 {
   "sort": ["name:asc"],
-  "filter": ["status = active"]
+  "filter": ["status = active"],
+  "limit": 50
 }

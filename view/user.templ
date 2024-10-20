@@ -6,6 +6,12 @@ import (
 	"github.com/webdevfuel/go-htmx-data-dashboard/view/layout"
 )
 
+templ User(user data.User) {
+	@layout.Base() {
+		<div>{ user.Email }</div>
+	}
+}
+
 templ Users() {
 	@layout.Base() {
 		<div class="px-6" id="users" hx-include=".attribute" hx-get="/users-table" hx-trigger="load, refetch" hx-target="#table">
@@ -16,6 +22,8 @@ templ Users() {
 						<option value="">All Users</option>
 						<option value="status = active">Active</option>
 						<option value="status = blocked">Blocked</option>
+						<option value="status = pending">Pending</option>
+						<option value="status = archived">Archived</option>
 					</select>
 					<select name="sort" id="sort" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-700 border-neutral-600 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
 						<option value="name:asc">Sort by Name</option>
@@ -90,6 +98,10 @@ func statusAttributes(status string) templ.Attributes {
 		attributes["class"] = fmt.Sprintf("%s bg-blue-700/10 text-blue-700", baseClass)
 	case "blocked":
 		attributes["class"] = fmt.Sprintf("%s bg-red-700/10 text-red-700", baseClass)
+	case "pending":
+		attributes["class"] = fmt.Sprintf("%s bg-gray-700/10 text-gray-700", baseClass)
+	case "archived":
+		attributes["class"] = fmt.Sprintf("%s bg-slate-700/10 text-slate-700", baseClass)
 	}
 	return attributes
 }
@@ -100,6 +112,10 @@ func statusLabel(status string) string {
 		return "Active"
 	case "blocked":
 		return "Blocked"
+	case "pending":
+		return "Pending"
+	case "archived":
+		return "Archived"
 	default:
 		return ""
 	}
