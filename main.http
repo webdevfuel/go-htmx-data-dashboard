@@ -29,7 +29,7 @@ POST {{MEILISEARCH_HOST}}/indexes/users/documents
 Content-Type: application/json
 
 [
-  {"id": 2, "email": "johndoe@example.com", "name": "John Doe", "status": "blocked"},
+  {"id": 1, "email": "johndoe@example.com", "name": "John Doe", "status": "blocked"},
   {"id": 2, "email": "janedoe@example.com", "name": "Jane Doe", "status": "active"}
 ]
 
@@ -38,5 +38,6 @@ POST {{MEILISEARCH_HOST}}/indexes/users/search
 Content-Type: application/json
 
 {
-  "sort": ["name:asc"]
+  "sort": ["name:asc"],
+  "filter": ["status = active"]
 }

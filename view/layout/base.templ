@@ -2,7 +2,7 @@ package layout
 
 templ Base() {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" class="dark">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,8 +10,37 @@ templ Base() {
 			<link rel="stylesheet" href="/static/output.css"/>
 			<title>Go HTMX Data Dashboard</title>
 		</head>
-		<body>
-			{ children... }
+		<body class="flex bg-neutral-900 text-white">
+			<nav class="w-[248px] shrink-0 border-r border-neutral-800 h-screen sticky">
+				<div class="p-4">
+					<p class="font-bold text-xl">NiftyDashboard</p>
+					<ul class="mt-8 space-y-3">
+						@item("/") {
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" { iconAttributes... }><path d="M15.6 2.7a10 10 0 1 0 5.7 5.7"></path><circle cx="12" cy="12" r="2"></circle><path d="M13.4 10.6 19 5"></path></svg>
+							Dashboard
+						}
+						@item("/users") {
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" { iconAttributes... }><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+							Users
+						}
+					</ul>
+				</div>
+			</nav>
+			<main class="p-4 flex-1">
+				{ children... }
+			</main>
 		</body>
 	</html>
+}
+
+var iconAttributes templ.Attributes = templ.Attributes{
+	"class": "w-5 h-5 mr-2.5",
+}
+
+templ item(href string) {
+	<li>
+		<a href={ templ.SafeURL(href) } class="flex items-center">
+			{ children... }
+		</a>
+	</li>
 }

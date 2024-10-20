@@ -1,0 +1,106 @@
+package view
+
+import (
+	"fmt"
+	"github.com/webdevfuel/go-htmx-data-dashboard/data"
+	"github.com/webdevfuel/go-htmx-data-dashboard/view/layout"
+)
+
+templ Users() {
+	@layout.Base() {
+		<div class="px-6" id="users" hx-include=".attribute" hx-get="/users-table" hx-trigger="load, refetch" hx-target="#table">
+			<div class="flex items-center justify-between">
+				<h1 class="text-2xl font-bold">Users</h1>
+				<div class="flex items-center space-x-2.5">
+					<select name="filter" id="filter" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-700 border-neutral-600 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
+						<option value="">All Users</option>
+						<option value="status = active">Active</option>
+						<option value="status = blocked">Blocked</option>
+					</select>
+					<select name="sort" id="sort" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-700 border-neutral-600 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
+						<option value="name:asc">Sort by Name</option>
+						<option value="email:asc">Sort by Email</option>
+						<option value="status:asc">Sort by Status</option>
+						<option value="name:desc">Sort by Name (Descending)</option>
+						<option value="email:desc">Sort by Email (Descending)</option>
+						<option value="status:desc">Sort by Status (Descending)</option>
+					</select>
+				</div>
+			</div>
+			<div id="table" class="[.htmx-request_&]:hidden mt-4"></div>
+			<div class="hidden [.htmx-request_&]:block mt-4">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+			</div>
+		</div>
+		<script>
+			const usersEl = document.getElementById("users");
+
+			function dispatchRefetchEvent() {
+					const refetchEvent = new CustomEvent("refetch");
+					usersEl.dispatchEvent(refetchEvent);
+			}
+
+			const sortEl = document.getElementById("sort");
+
+			sortEl.addEventListener("change", function (evt) {
+				dispatchRefetchEvent();
+			})
+
+			const filterEl = document.getElementById("filter");
+
+			filterEl.addEventListener("change", function (evt) {
+				dispatchRefetchEvent();
+			})
+		</script>
+	}
+}
+
+templ UsersTable(users []data.User) {
+	<div class="border border-neutral-800 rounded-lg">
+		<table class="table-auto w-full">
+			<thead>
+				<tr>
+					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tl-md">Name</th>
+					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Email</th>
+					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tr-md">Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, user := range users {
+					<tr>
+						<td class="text-left px-4 py-2">{ user.Name }</td>
+						<td class="text-left px-4 py-2">{ user.Email }</td>
+						<td class="text-left px-4 py-2">
+							<span { statusAttributes(user.Status)... }>
+								{ statusLabel(user.Status) }
+							</span>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+func statusAttributes(status string) templ.Attributes {
+	attributes := make(templ.Attributes, 0)
+	baseClass := "rounded-full px-2 py-0.5 text-sm"
+	switch status {
+	case "active":
+		attributes["class"] = fmt.Sprintf("%s bg-blue-700/10 text-blue-700", baseClass)
+	case "blocked":
+		attributes["class"] = fmt.Sprintf("%s bg-red-700/10 text-red-700", baseClass)
+	}
+	return attributes
+}
+
+func statusLabel(status string) string {
+	switch status {
+	case "active":
+		return "Active"
+	case "blocked":
+		return "Blocked"
+	default:
+		return ""
+	}
+}
