@@ -1,14 +1,15 @@
 package handler
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
-	"github.com/webdevfuel/go-htmx-data-dashboard/search"
+	"github.com/webdevfuel/go-htmx-data-dashboard/pagination"
 	"github.com/webdevfuel/go-htmx-data-dashboard/view"
 )
 
@@ -35,7 +36,6 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		Where("id = ?", id).
 		Scan(r.Context())
 	if err != nil {
-		log.Println(err)
 		return
 	}
 
@@ -50,18 +50,48 @@ func (h *Handler) UsersTableHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filter := r.URL.Query().Get("filter")
-	if filter == "" {
-		filter = ""
+
+	pageStr := r.URL.Query().Get("page")
+	if pageStr == "" {
+		pageStr = "1"
 	}
 
-	var users []data.User
-	users, err := search.Search(r.Context(), h.meilisearchClient, users, sort, filter)
+	page, err := strconv.Atoi(pageStr)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 
-	component := view.UsersTable(users)
+	searchRes, err := h.meilisearchClient.Index("users").
+		SearchWithContext(r.Context(), "", &meilisearch.SearchRequest{
+			Sort:        []string{sort},
+			Filter:      []string{filter},
+			Page:        int64(page),
+			HitsPerPage: int64(25),
+		})
+	if err != nil {
+		return
+	}
+
+	var users []data.User
+
+	for _, hit := range searchRes.Hits {
+		s, err := json.Marshal(hit)
+		if err != nil {
+			return
+		}
+		var user data.User
+		err = json.Unmarshal(s, &user)
+		if err != nil {
+			return
+		}
+		users = append(users, user)
+	}
+
+	component := view.UsersTable(
+		users,
+		pagination.PrevPage(searchRes.Page),
+		pagination.NextPage(searchRes.Page, searchRes.TotalPages),
+	)
 	component.Render(r.Context(), w)
 }
 

@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
+	"github.com/webdevfuel/go-htmx-data-dashboard/pagination"
 	"github.com/webdevfuel/go-htmx-data-dashboard/view/layout"
 )
 
@@ -36,58 +37,87 @@ templ Users() {
 				</div>
 			</div>
 			<div id="table" class="[.htmx-request_&]:hidden mt-4"></div>
-			<div class="hidden [.htmx-request_&]:block mt-4">
+			<div id="spinner" class="hidden [.htmx-request_&]:block mt-4">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
 			</div>
 		</div>
-		<script>
-			const usersEl = document.getElementById("users");
-
-			function dispatchRefetchEvent() {
-					const refetchEvent = new CustomEvent("refetch");
-					usersEl.dispatchEvent(refetchEvent);
-			}
-
-			const sortEl = document.getElementById("sort");
-
-			sortEl.addEventListener("change", function (evt) {
-				dispatchRefetchEvent();
-			})
-
-			const filterEl = document.getElementById("filter");
-
-			filterEl.addEventListener("change", function (evt) {
-				dispatchRefetchEvent();
-			})
-		</script>
+		<script type="text/javascript" src="/static/table.js"></script>
 	}
 }
 
-templ UsersTable(users []data.User) {
-	<div class="border border-neutral-800 rounded-lg">
-		<table class="table-auto w-full">
-			<thead>
-				<tr>
-					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tl-md">Name</th>
-					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Email</th>
-					<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tr-md">Status</th>
-				</tr>
-			</thead>
-			<tbody>
-				for _, user := range users {
+templ UsersTable(users []data.User, prev, next *pagination.Page) {
+	<div>
+		<div class="border border-neutral-800 rounded-lg">
+			<table class="table-auto w-full">
+				<thead>
 					<tr>
-						<td class="text-left px-4 py-2">{ user.Name }</td>
-						<td class="text-left px-4 py-2">{ user.Email }</td>
-						<td class="text-left px-4 py-2">
-							<span { statusAttributes(user.Status)... }>
-								{ statusLabel(user.Status) }
-							</span>
-						</td>
+						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tl-md">Name</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Email</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Status</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tr-md"></th>
 					</tr>
-				}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					for _, user := range users {
+						<tr class="group">
+							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Name }</td>
+							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Email }</td>
+							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
+								<span { statusAttributes(user.Status)... }>
+									{ statusLabel(user.Status) }
+								</span>
+							</td>
+							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
+								<div class="flex justify-end items-center space-x-4">
+									<a class="flex items-center font-medium text-neutral-300 hover:text-white" href={ templ.SafeURL(fmt.Sprintf("/users/%d", user.ID)) }>
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+										View
+									</a>
+									<a class="flex items-center font-medium text-neutral-300 hover:text-white" href={ templ.SafeURL(fmt.Sprintf("/users/%d", user.ID)) }>
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+										Remove
+									</a>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+		<div id="pagination" class="flex items-center space-x-4 mt-4">
+			@paginationItem(fmt.Sprintf("/users-table?page=%d", prev.Value), prev.Disabled) {
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2.5"><path d="M6 8L2 12L6 16"></path><path d="M2 12H22"></path></svg>
+				Prev
+			}
+			@paginationItem(fmt.Sprintf("/users-table?page=%d", next.Value), next.Disabled) {
+				Next
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 ml-2.5"><path d="M18 8L22 12L18 16"></path><path d="M2 12H22"></path></svg>
+			}
+		</div>
+		<script type="text/javascript">
+			for (const el of document.querySelectorAll("#pagination button")) {
+				el.addEventListener("click", function () {
+					spinnerEl.classList.remove("hidden");
+					spinnerEl.classList.add("block");
+
+					tableEl.classList.add("hidden");
+					tableEl.classList.remove("block");
+				})
+			}
+		</script>
 	</div>
+}
+
+templ paginationItem(url string, disabled bool) {
+	if disabled {
+		<div class="flex items-center font-medium text-neutral-700 pointer-events-none">
+			{ children... }
+		</div>
+	} else {
+		<button class="flex items-center font-medium text-neutral-300 hover:text-white" type="button" hx-get={ url }>
+			{ children... }
+		</button>
+	}
 }
 
 func statusAttributes(status string) templ.Attributes {
