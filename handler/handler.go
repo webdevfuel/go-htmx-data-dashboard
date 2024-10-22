@@ -10,6 +10,7 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
+	"github.com/webdevfuel/go-htmx-data-dashboard/live"
 	"github.com/webdevfuel/go-htmx-data-dashboard/pagination"
 	"github.com/webdevfuel/go-htmx-data-dashboard/view"
 )
@@ -17,12 +18,18 @@ import (
 type Handler struct {
 	bundb             *bun.DB
 	meilisearchClient meilisearch.ServiceManager
+	notification      *live.Notification
 }
 
-func NewHandler(bundb *bun.DB, meilisearchClient meilisearch.ServiceManager) *Handler {
+func NewHandler(
+	bundb *bun.DB,
+	meilisearchClient meilisearch.ServiceManager,
+	notification *live.Notification,
+) *Handler {
 	return &Handler{
 		bundb:             bundb,
 		meilisearchClient: meilisearchClient,
+		notification:      notification,
 	}
 }
 
@@ -116,4 +123,19 @@ func (h *Handler) DashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	component := view.Dashboard(metrics)
 	component.Render(r.Context(), w)
+}
+
+func (h *Handler) Live(w http.ResponseWriter, r *http.Request) {
+	c, err := live.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	client := &live.Client{Conn: c, Send: make(chan []byte)}
+	h.notification.Register <- client
+	go client.Pump()
+}
+
+func (h *Handler) Notification(w http.ResponseWriter, r *http.Request) {
+	h.notification.Broadcast <- []byte(`<div id="notifications" hx-swap-oob="beforeend"><p>New notification</p></div>`)
 }

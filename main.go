@@ -5,6 +5,7 @@ import (
 
 	"github.com/webdevfuel/go-htmx-data-dashboard/db"
 	"github.com/webdevfuel/go-htmx-data-dashboard/handler"
+	"github.com/webdevfuel/go-htmx-data-dashboard/live"
 	"github.com/webdevfuel/go-htmx-data-dashboard/router"
 	"github.com/webdevfuel/go-htmx-data-dashboard/search"
 )
@@ -14,7 +15,10 @@ func main() {
 
 	meilisearchClient := search.NewMeilisearchClient()
 
-	handler := handler.NewHandler(bundb, meilisearchClient)
+	notification := live.NewNotification()
+	go notification.Run()
+
+	handler := handler.NewHandler(bundb, meilisearchClient, notification)
 
 	r := router.NewRouter(handler, http.Dir("./static"))
 

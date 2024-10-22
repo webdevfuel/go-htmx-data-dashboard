@@ -16,5 +16,7 @@ func NewRouter(h *handler.Handler, staticDir http.Dir) *chi.Mux {
 	r.Get("/users", h.UsersHandler)
 	r.Get("/users/{id}", h.UserHandler)
 	r.Get("/users-table", h.UsersTableHandler)
+	r.Get("/live", h.Live)
+	r.Post("/notification", h.Notification)
 	return r
 }
