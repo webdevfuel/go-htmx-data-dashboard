@@ -1,0 +1,62 @@
+{
+  "name": "01_initial",
+  "operations": [
+    {
+      "create_table": {
+        "name": "users",
+        "columns": [
+          {
+            "name": "id",
+            "type": "serial",
+            "pk": true
+          },
+          {
+            "name": "name",
+            "type": "text"
+          },
+          {
+            "name": "email",
+            "type": "text",
+            "unique": true
+          },
+          {
+            "name": "status",
+            "type": "varchar(50)"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp",
+            "default": "now()"
+          },
+          {
+            "name": "activated_at",
+            "type": "timestamp",
+            "nullable": true
+          }
+        ]
+      }
+    },
+    {
+      "create_table": {
+        "name": "metrics",
+        "columns": [
+          {
+            "name": "metric_date",
+            "type": "date",
+            "pk": true
+          },
+          {
+            "name": "new_users",
+            "type": "int",
+            "default": "0"
+          },
+          {
+            "name": "new_activations",
+            "type": "int",
+            "default": "0"
+          }
+        ]
+      }
+    }
+  ]
+}

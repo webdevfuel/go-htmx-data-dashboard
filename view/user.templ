@@ -19,14 +19,14 @@ templ Users() {
 			<div class="flex items-center justify-between">
 				<h1 class="text-2xl font-bold">Users</h1>
 				<div class="flex items-center space-x-2.5">
-					<select name="filter" id="filter" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-700 border-neutral-600 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
+					<select name="filter" id="filter" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
 						<option value="">All Users</option>
 						<option value="status = active">Active</option>
 						<option value="status = blocked">Blocked</option>
 						<option value="status = pending">Pending</option>
 						<option value="status = archived">Archived</option>
 					</select>
-					<select name="sort" id="sort" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-700 border-neutral-600 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
+					<select name="sort" id="sort" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
 						<option value="name:asc">Sort by Name</option>
 						<option value="email:asc">Sort by Email</option>
 						<option value="status:asc">Sort by Status</option>
@@ -47,14 +47,14 @@ templ Users() {
 
 templ UsersTable(users []data.User, prev, next *pagination.Page) {
 	<div>
-		<div class="border border-neutral-800 rounded-lg">
+		<div class="border border-neutral-700 rounded-lg">
 			<table class="table-auto w-full">
 				<thead>
 					<tr>
-						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tl-md">Name</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Email</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800">Status</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-800 bg-neutral-800 rounded-tr-md"></th>
+						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tl-md">Name</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Email</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Status</th>
+						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tr-md"></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -94,17 +94,7 @@ templ UsersTable(users []data.User, prev, next *pagination.Page) {
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 ml-2.5"><path d="M18 8L22 12L18 16"></path><path d="M2 12H22"></path></svg>
 			}
 		</div>
-		<script type="text/javascript">
-			for (const el of document.querySelectorAll("#pagination button")) {
-				el.addEventListener("click", function () {
-					spinnerEl.classList.remove("hidden");
-					spinnerEl.classList.add("block");
-
-					tableEl.classList.add("hidden");
-					tableEl.classList.remove("block");
-				})
-			}
-		</script>
+		<script type="text/javascript" src="/static/pagination.js"> </script>
 	</div>
 }
 

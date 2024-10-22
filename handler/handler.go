@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -30,11 +31,11 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var user data.User
 
-	err := h.bundb.NewSelect().
-		Model(&user).
-		Column("id", "name", "email", "status").
-		Where("id = ?", id).
-		Scan(r.Context())
+	err := h.bundb.NewRaw("select id, name, email, status from ?.? where id = ?",
+		bun.Ident("public_01_initial"),
+		bun.Ident("users"),
+		id,
+	).Scan(r.Context(), &user)
 	if err != nil {
 		return
 	}
@@ -101,6 +102,18 @@ func (h *Handler) UsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	component := view.Dashboard()
+	metrics := make([]data.Metric, 0)
+
+	err := h.bundb.NewRaw(
+		"select metric_date, new_users, new_activations from ?.?;",
+		bun.Ident("public_01_initial"),
+		bun.Ident("metrics"),
+	).Scan(r.Context(), &metrics)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	component := view.Dashboard(metrics)
 	component.Render(r.Context(), w)
 }
