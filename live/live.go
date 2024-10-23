@@ -1,6 +1,7 @@
 package live
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -15,13 +16,14 @@ var Upgrader = websocket.Upgrader{
 
 const (
 	updatePeriod = 1 * time.Second
-	pingPeriod   = 1 * time.Second
+	pingPeriod   = 10 * time.Second
 	writeWait    = 10 * time.Second
 )
 
 type Client struct {
-	Conn *websocket.Conn
-	Send chan []byte
+	Conn         *websocket.Conn
+	Notification *Notification
+	Send         chan []byte
 }
 
 type Notification struct {
@@ -44,6 +46,7 @@ func (n *Notification) Run() {
 	for {
 		select {
 		case message := <-n.Broadcast:
+			log.Println(n.Clients)
 			for client := range n.Clients {
 				select {
 				case client.Send <- message:
@@ -64,11 +67,22 @@ func (n *Notification) Run() {
 }
 
 func (c *Client) Pump() {
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		c.Notification.Unregister <- c
+		c.Conn.Close()
+	}()
 	for {
 		select {
 		case message := <-c.Send:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			err := c.Conn.WriteMessage(websocket.TextMessage, message)
+			if err != nil {
+				return
+			}
+		case <-ticker.C:
+			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			err := c.Conn.WriteMessage(websocket.PingMessage, nil)
 			if err != nil {
 				return
 			}

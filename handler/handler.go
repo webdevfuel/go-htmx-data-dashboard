@@ -131,7 +131,7 @@ func (h *Handler) Live(w http.ResponseWriter, r *http.Request) {
 		log.Print("upgrade:", err)
 		return
 	}
-	client := &live.Client{Conn: c, Send: make(chan []byte)}
+	client := &live.Client{Conn: c, Notification: h.notification, Send: make(chan []byte)}
 	h.notification.Register <- client
 	go client.Pump()
 }
