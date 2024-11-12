@@ -8,6 +8,7 @@ import (
 	"log"
 	randmath "math/rand/v2"
 
+	"github.com/meilisearch/meilisearch-go"
 	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/db"
 	"github.com/webdevfuel/go-htmx-data-dashboard/search"
@@ -52,7 +53,8 @@ func main() {
 
 	meilisearchClient := search.NewMeilisearchClient()
 
-	err = search.DeleteAllDocuments(context.Background(), meilisearchClient)
+	_, err = meilisearchClient.Index("users").
+		DeleteAllDocuments()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,7 +93,8 @@ func main() {
 			"status": status,
 		})
 		if i%1000 == 0 {
-			err = search.InsertDocuments(context.Background(), meilisearchClient, documents)
+			_, err := meilisearchClient.Index("users").
+				AddDocuments(documents)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -115,6 +118,28 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	_, err = meilisearchClient.CreateIndex(&meilisearch.IndexConfig{
+		Uid:        "users",
+		PrimaryKey: "id",
+	})
+	if err != nil {
+
+	}
+
+	sortableAttributes := []string{"name", "email", "status"}
+	_, err = meilisearchClient.Index("users").
+		UpdateSortableAttributes(&sortableAttributes)
+	if err != nil {
+
+	}
+
+	filterableAttributes := []string{"status"}
+	_, err = meilisearchClient.Index("users").
+		UpdateFilterableAttributes(&filterableAttributes)
+	if err != nil {
+
 	}
 }
 
