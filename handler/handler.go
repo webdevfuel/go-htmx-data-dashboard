@@ -2,16 +2,21 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/form"
+	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
 	"github.com/webdevfuel/go-htmx-data-dashboard/live"
 	"github.com/webdevfuel/go-htmx-data-dashboard/pagination"
+	"github.com/webdevfuel/go-htmx-data-dashboard/validation"
 	"github.com/webdevfuel/go-htmx-data-dashboard/view"
 )
 
@@ -108,14 +113,120 @@ func (h *Handler) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	component.Render(r.Context(), w)
 }
 
+func (h *Handler) NewUserHandler(w http.ResponseWriter, r *http.Request) {
+	component := view.NewUser()
+	component.Render(r.Context(), w)
+}
+
+func (h *Handler) RefreshChartHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var column string
+	if id == "new-users" {
+		column = "new_users"
+	}
+	if id == "new-activations" {
+		column = "new_activations"
+	}
+
+	metrics := make([]data.Metric, 0)
+	err := data.GetMetric(r.Context(), h.bundb, column, &metrics)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	if id == "new-users" {
+		component := view.Chart(
+			id,
+			data.MetricsDates(metrics),
+			data.NewUsersMetrics(metrics),
+			true,
+		)
+		component.Render(r.Context(), w)
+	}
+
+	if id == "new-activations" {
+		component := view.Chart(
+			id,
+			data.MetricsDates(metrics),
+			data.NewActivationsMetrics(metrics),
+			true,
+		)
+		component.Render(r.Context(), w)
+	}
+
+}
+
+type NewUserFormData struct {
+	Name   string `form:"name"   validate:"required"`
+	Email  string `form:"email"  validate:"required"`
+	Status string `form:"status" validate:"required"`
+}
+
+var decoder *form.Decoder
+
+func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	decoder = form.NewDecoder()
+
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	var data NewUserFormData
+
+	err = decoder.Decode(&data, r.Form)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	v := validation.New()
+
+	err = v.Struct(data)
+	if err != nil {
+		errors := validation.Errors(data, err)
+		component := view.NewUserForm(errors)
+		component.Render(r.Context(), w)
+	}
+
+	id, _ := uuid.NewRandom()
+
+	_, err = h.bundb.NewRaw(
+		"insert into ?.? (email, name, status, created_at) values (?, ?, ?, ?);",
+		bun.Ident("public_01_initial"),
+		bun.Ident("users"),
+		data.Email,
+		data.Name,
+		data.Status,
+		time.Now().Format("2007-01-02 15:04:05"),
+	).Exec(r.Context())
+	if err != nil {
+		log.Println("error insert into database:", err)
+	}
+
+	_, err = h.meilisearchClient.Index("users").AddDocuments([]map[string]any{
+		{
+			"id":     id,
+			"name":   data.Name,
+			"email":  data.Email,
+			"status": data.Status,
+		},
+	})
+	if err != nil {
+		log.Println("error adding document to meilisearch:", err)
+	}
+
+	h.notification.Broadcast <- []byte(fmt.Sprintf(`<div id="notifications" hx-swap-oob="beforeend"><p>New user - ID: %s - Name: %s</p></div>`, id, data.Name))
+
+	w.Header().Set("Hx-Redirect", "/users")
+}
+
 func (h *Handler) DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	metrics := make([]data.Metric, 0)
-
-	err := h.bundb.NewRaw(
-		"select metric_date, new_users, new_activations from ?.?;",
-		bun.Ident("public_01_initial"),
-		bun.Ident("metrics"),
-	).Scan(r.Context(), &metrics)
+	err := data.GetMetrics(r.Context(), h.bundb, &metrics)
 	if err != nil {
 		log.Println(err)
 		return

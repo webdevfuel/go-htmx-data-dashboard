@@ -1,7 +1,6 @@
 package live
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -46,7 +45,6 @@ func (n *Notification) Run() {
 	for {
 		select {
 		case message := <-n.Broadcast:
-			log.Println(n.Clients)
 			for client := range n.Clients {
 				select {
 				case client.Send <- message:

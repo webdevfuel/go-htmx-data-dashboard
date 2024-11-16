@@ -42,3 +42,8 @@ Content-Type: application/json
   "filter": ["status = active"],
   "limit": 50
 }
+
+
+### get meilisearch document
+GET {{MEILISEARCH_HOST}}/indexes/users/documents/1207c71e-1d6f-463f-808c-925891490206
+Content-Type: application/json

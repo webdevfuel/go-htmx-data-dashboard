@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
 	"github.com/webdevfuel/go-htmx-data-dashboard/pagination"
+	"github.com/webdevfuel/go-htmx-data-dashboard/validation"
 	"github.com/webdevfuel/go-htmx-data-dashboard/view/layout"
 )
 
@@ -13,28 +14,99 @@ templ User(user data.User) {
 	}
 }
 
+func selectAttrs(attribute bool) templ.Attributes {
+	return templ.Attributes{
+		"class": templ.Classes(map[string]bool{
+			"block p-2 border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500": true,
+			"attribute w-[200px] text-sm": attribute,
+			"w-full":                      !attribute,
+		}).String(),
+	}
+
+}
+
+var inputAttrs templ.Attributes = templ.Attributes{
+	"class": "block p-2 border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500 w-full",
+}
+
+var labelAttrs templ.Attributes = templ.Attributes{
+	"class": "block text-sm mb-2 text-neutral-200",
+}
+
+var errorAttrs templ.Attributes = templ.Attributes{
+	"class": "block mt-2 text-red-500 text-sm",
+}
+
+templ NewUser() {
+	@layout.Base() {
+		<div class="px-6">
+			<h1 class="text-2xl font-bold">New User</h1>
+			@NewUserForm(validation.Default())
+		</div>
+	}
+}
+
+templ NewUserForm(errors *validation.FormErrors) {
+	<form hx-post="/users" hx-swap="outerHTML" hx-indicator="find #spinner" hx-disabled-elt="find button" class="flex flex-col space-y-4 mt-6">
+		<div>
+			<label { labelAttrs... } for="name">Name</label>
+			<input { inputAttrs... } value={ errors.GetValue("name") } id="name" name="name" type="text"/>
+			if errors != nil && errors.HasField("name") {
+				<span { errorAttrs... }>{ errors.GetMessage("name") }</span>
+			}
+		</div>
+		<div>
+			<label { labelAttrs... } for="email">Email Address</label>
+			<input { inputAttrs... } value={ errors.GetValue("email") } id="email" name="email" type="text"/>
+			if errors != nil && errors.HasField("email") {
+				<span { errorAttrs... }>{ errors.GetMessage("email") }</span>
+			}
+		</div>
+		<div>
+			<label { labelAttrs... } for="status">Status</label>
+			<select id="status" name="status" { selectAttrs(false)... }>
+				<option value=""></option>
+				<option selected?={ errors.GetValue("status") == "active" } value="active">Active</option>
+				<option selected?={ errors.GetValue("status") == "blocked" } value="blocked">Blocked</option>
+				<option selected?={ errors.GetValue("status") == "pending" } value="pending">Pending</option>
+				<option selected?={ errors.GetValue("status") == "archived" } value="archived">Archived</option>
+			</select>
+			if errors != nil && errors.HasField("status") {
+				<span { errorAttrs... }>{ errors.GetMessage("status") }</span>
+			}
+		</div>
+		<div>
+			<button type="submit" class="flex items-center font-medium p-2.5 mt-2 rounded-lg bg-blue-700 hover:bg-blue-900 disabled:opacity-50" href="/users/new">
+				New User
+				<svg id="spinner" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle hidden [&.htmx-request]:block w-4 h-4 animate-spin ml-2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+			</button>
+		</div>
+	</form>
+}
+
 templ Users() {
 	@layout.Base() {
 		<div class="px-6" id="users" hx-include=".attribute" hx-get="/users-table" hx-trigger="load, refetch" hx-target="#table">
 			<div class="flex items-center justify-between">
 				<h1 class="text-2xl font-bold">Users</h1>
-				<div class="flex items-center space-x-2.5">
-					<select name="filter" id="filter" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
-						<option value="">All Users</option>
-						<option value="status = active">Active</option>
-						<option value="status = blocked">Blocked</option>
-						<option value="status = pending">Pending</option>
-						<option value="status = archived">Archived</option>
-					</select>
-					<select name="sort" id="sort" class="attribute block w-[200px] p-2 text-sm border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500">
-						<option value="name:asc">Sort by Name</option>
-						<option value="email:asc">Sort by Email</option>
-						<option value="status:asc">Sort by Status</option>
-						<option value="name:desc">Sort by Name (Descending)</option>
-						<option value="email:desc">Sort by Email (Descending)</option>
-						<option value="status:desc">Sort by Status (Descending)</option>
-					</select>
-				</div>
+				<a class="font-medium p-2 rounded-lg bg-blue-700 hover:bg-blue-900" href="/users/new">New User</a>
+			</div>
+			<div class="flex mt-6 space-x-2.5 justify-end">
+				<select name="filter" id="filter" { selectAttrs(true)... }>
+					<option value="">All Users</option>
+					<option value="status = active">Active</option>
+					<option value="status = blocked">Blocked</option>
+					<option value="status = pending">Pending</option>
+					<option value="status = archived">Archived</option>
+				</select>
+				<select name="sort" id="sort" { selectAttrs(true)... }>
+					<option value="name:asc">Sort by Name</option>
+					<option value="email:asc">Sort by Email</option>
+					<option value="status:asc">Sort by Status</option>
+					<option value="name:desc">Sort by Name (Descending)</option>
+					<option value="email:desc">Sort by Email (Descending)</option>
+					<option value="status:desc">Sort by Status (Descending)</option>
+				</select>
 			</div>
 			<div id="table" class="[.htmx-request_&]:hidden mt-4"></div>
 			<div id="spinner" class="hidden [.htmx-request_&]:block mt-4">
