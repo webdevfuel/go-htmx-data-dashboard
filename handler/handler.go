@@ -43,9 +43,7 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var user data.User
 
-	err := h.bundb.NewRaw("select id, name, email, status from ?.? where id = ?",
-		bun.Ident("public_01_initial"),
-		bun.Ident("users"),
+	err := h.bundb.NewRaw("select id, name, email, status from users where id = ?",
 		id,
 	).Scan(r.Context(), &user)
 	if err != nil {
@@ -195,9 +193,7 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := uuid.NewRandom()
 
 	_, err = h.bundb.NewRaw(
-		"insert into ?.? (email, name, status, created_at) values (?, ?, ?, ?);",
-		bun.Ident("public_01_initial"),
-		bun.Ident("users"),
+		"insert into users (email, name, status, created_at) values (?, ?, ?, ?);",
 		data.Email,
 		data.Name,
 		data.Status,

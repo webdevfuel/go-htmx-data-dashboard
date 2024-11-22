@@ -9,7 +9,6 @@ import (
 	randmath "math/rand/v2"
 
 	"github.com/meilisearch/meilisearch-go"
-	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/db"
 	"github.com/webdevfuel/go-htmx-data-dashboard/search"
 )
@@ -35,18 +34,12 @@ var dates []string = []string{
 func main() {
 	bundb := db.NewBunDB()
 
-	_, err := bundb.NewRaw("delete from ?.?;",
-		bun.Ident("public_01_initial"),
-		bun.Ident("users"),
-	).Exec(context.Background())
+	_, err := bundb.NewRaw("delete from users;").Exec(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = bundb.NewRaw("delete from ?.?;",
-		bun.Ident("public_01_initial"),
-		bun.Ident("metrics"),
-	).Exec(context.Background())
+	_, err = bundb.NewRaw("delete from users;").Exec(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,9 +67,7 @@ func main() {
 		}
 		email := fmt.Sprintf("%s@example.com", name)
 		err := bundb.NewRaw(
-			"insert into ?.? (email, name, status, created_at, activated_at) values (?, ?, ?, ?, ?) returning id;",
-			bun.Ident("public_01_initial"),
-			bun.Ident("users"),
+			"insert into users (email, name, status, created_at, activated_at) values (?, ?, ?, ?, ?) returning id;",
 			email,
 			name,
 			status,
@@ -103,18 +94,17 @@ func main() {
 	}
 
 	for _, date := range dates {
-		public01Initial := bun.Ident("public_01_initial")
 		_, err := bundb.NewRaw(`
-			INSERT INTO ?.? (metric_date, new_users, new_activations)
+			INSERT INTO metrics (metric_date, new_users, new_activations)
 			SELECT
 				to_date(?, 'YYYY-MM-DD') AS metric_date,
-				(SELECT COUNT(*) FROM ?.? WHERE created_at::date = to_date(?, 'YYYY-MM-DD')) AS new_users,
-				(SELECT COUNT(*) FROM ?.? WHERE activated_at::date = to_date(?, 'YYYY-MM-DD')) AS new_activations
+				(SELECT COUNT(*) FROM users WHERE created_at::date = to_date(?, 'YYYY-MM-DD')) AS new_users,
+				(SELECT COUNT(*) FROM users WHERE activated_at::date = to_date(?, 'YYYY-MM-DD')) AS new_activations
 			ON CONFLICT (metric_date)
 				DO UPDATE SET
 					new_users = EXCLUDED.new_users,
 					new_activations = EXCLUDED.new_activations;
-		`, public01Initial, bun.Ident("metrics"), date, public01Initial, bun.Ident("users"), date, public01Initial, bun.Ident("users"), date).Exec(context.Background())
+		`, date, date, date).Exec(context.Background())
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -47,10 +47,8 @@ func MetricsDates(metrics []Metric) []string {
 
 func GetMetric(ctx context.Context, bundb *bun.DB, column string, dest *[]Metric) error {
 	err := bundb.NewRaw(
-		"select metric_date, ? from ?.?;",
+		"select metric_date, ? from metrics;",
 		bun.Ident(column),
-		bun.Ident("public_01_initial"),
-		bun.Ident("metrics"),
 	).Scan(ctx, dest)
 	if err != nil {
 		return nil
@@ -60,9 +58,7 @@ func GetMetric(ctx context.Context, bundb *bun.DB, column string, dest *[]Metric
 
 func GetMetrics(ctx context.Context, bundb *bun.DB, dest *[]Metric) error {
 	err := bundb.NewRaw(
-		"select metric_date, new_users, new_activations from ?.?;",
-		bun.Ident("public_01_initial"),
-		bun.Ident("metrics"),
+		"select metric_date, new_users, new_activations from metrics;",
 	).Scan(ctx, dest)
 	if err != nil {
 		return err
