@@ -67,13 +67,15 @@ func (h *Handler) UsersTableHandler(w http.ResponseWriter, r *http.Request) {
 		pageStr = "1"
 	}
 
+	query := r.URL.Query().Get("query")
+
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
 		return
 	}
 
 	searchRes, err := h.meilisearchClient.Index("users").
-		SearchWithContext(r.Context(), "", &meilisearch.SearchRequest{
+		SearchWithContext(r.Context(), query, &meilisearch.SearchRequest{
 			Sort:        []string{sort},
 			Filter:      []string{filter},
 			Page:        int64(page),

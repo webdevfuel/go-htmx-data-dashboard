@@ -25,8 +25,14 @@ func selectAttrs(attribute bool) templ.Attributes {
 
 }
 
-var inputAttrs templ.Attributes = templ.Attributes{
-	"class": "block p-2 border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500 w-full",
+func inputAttrs(attribute bool) templ.Attributes {
+	return templ.Attributes{
+		"class": templ.Classes(map[string]bool{
+			"block p-2 border rounded-lg bg-neutral-800 border-neutral-700 placeholder-neutral-400 focus:ring-blue-500 focus:border-blue-500": true,
+			"attribute w-[244px] h-[38px] text-sm": attribute,
+			"w-full":                               !attribute,
+		}).String(),
+	}
 }
 
 var labelAttrs templ.Attributes = templ.Attributes{
@@ -50,14 +56,14 @@ templ NewUserForm(errors *validation.FormErrors) {
 	<form hx-post="/users" hx-swap="outerHTML" hx-indicator="find #spinner" hx-disabled-elt="find button" class="flex flex-col space-y-4 mt-6">
 		<div>
 			<label { labelAttrs... } for="name">Name</label>
-			<input { inputAttrs... } value={ errors.GetValue("name") } id="name" name="name" type="text"/>
+			<input { inputAttrs(false)... } value={ errors.GetValue("name") } id="name" name="name" type="text"/>
 			if errors != nil && errors.HasField("name") {
 				<span { errorAttrs... }>{ errors.GetMessage("name") }</span>
 			}
 		</div>
 		<div>
 			<label { labelAttrs... } for="email">Email Address</label>
-			<input { inputAttrs... } value={ errors.GetValue("email") } id="email" name="email" type="text"/>
+			<input { inputAttrs(false)... } value={ errors.GetValue("email") } id="email" name="email" type="text"/>
 			if errors != nil && errors.HasField("email") {
 				<span { errorAttrs... }>{ errors.GetMessage("email") }</span>
 			}
@@ -91,22 +97,27 @@ templ Users() {
 				<h1 class="text-2xl font-bold">Users</h1>
 				<a class="font-medium p-2 rounded-lg bg-blue-700 hover:bg-blue-900" href="/users/new">New User</a>
 			</div>
-			<div class="flex mt-6 space-x-2.5 justify-end">
-				<select name="filter" id="filter" { selectAttrs(true)... }>
-					<option value="">All Users</option>
-					<option value="status = active">Active</option>
-					<option value="status = blocked">Blocked</option>
-					<option value="status = pending">Pending</option>
-					<option value="status = archived">Archived</option>
-				</select>
-				<select name="sort" id="sort" { selectAttrs(true)... }>
-					<option value="name:asc">Sort by Name</option>
-					<option value="email:asc">Sort by Email</option>
-					<option value="status:asc">Sort by Status</option>
-					<option value="name:desc">Sort by Name (Descending)</option>
-					<option value="email:desc">Sort by Email (Descending)</option>
-					<option value="status:desc">Sort by Status (Descending)</option>
-				</select>
+			<div class="flex mt-6 justify-between items-center">
+				<div>
+					<input { inputAttrs(true)... } placeholder="Search by name and email..." name="query" id="query"/>
+				</div>
+				<div class="flex items-center space-x-2.5">
+					<select name="filter" id="filter" { selectAttrs(true)... }>
+						<option value="">All Users</option>
+						<option value="status = active">Active</option>
+						<option value="status = blocked">Blocked</option>
+						<option value="status = pending">Pending</option>
+						<option value="status = archived">Archived</option>
+					</select>
+					<select name="sort" id="sort" { selectAttrs(true)... }>
+						<option value="name:asc">Sort by Name</option>
+						<option value="email:asc">Sort by Email</option>
+						<option value="status:asc">Sort by Status</option>
+						<option value="name:desc">Sort by Name (Descending)</option>
+						<option value="email:desc">Sort by Email (Descending)</option>
+						<option value="status:desc">Sort by Status (Descending)</option>
+					</select>
+				</div>
 			</div>
 			<div id="table" class="[.htmx-request_&]:hidden mt-4"></div>
 			<div id="spinner" class="hidden [.htmx-request_&]:block mt-4">
