@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form"
-	"github.com/google/uuid"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/uptrace/bun"
 	"github.com/webdevfuel/go-htmx-data-dashboard/data"
@@ -190,17 +189,18 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		errors := validation.Errors(data, err)
 		component := view.NewUserForm(errors)
 		component.Render(r.Context(), w)
+		return
 	}
 
-	id, _ := uuid.NewRandom()
+	var id int
 
-	_, err = h.bundb.NewRaw(
+	err = h.bundb.NewRaw(
 		"insert into users (email, name, status, created_at) values (?, ?, ?, ?);",
 		data.Email,
 		data.Name,
 		data.Status,
 		time.Now().Format("2007-01-02 15:04:05"),
-	).Exec(r.Context())
+	).Scan(r.Context(), &id)
 	if err != nil {
 		log.Println("error insert into database:", err)
 	}
@@ -217,7 +217,7 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("error adding document to meilisearch:", err)
 	}
 
-	h.notification.Broadcast <- []byte(fmt.Sprintf(`<div id="notifications" hx-swap-oob="beforeend"><p>New user - ID: %s - Name: %s</p></div>`, id, data.Name))
+	h.notification.Broadcast <- []byte(fmt.Sprintf(`<div id="notifications" hx-swap-oob="beforeend"><p>New user - ID: %d - Name: %s</p></div>`, id, data.Name))
 
 	w.Header().Set("Hx-Redirect", "/users")
 }
