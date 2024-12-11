@@ -131,37 +131,41 @@ templ Users() {
 templ UsersTable(users []data.User, prev, next *pagination.Page) {
 	<div>
 		<div class="border border-neutral-700 rounded-lg">
-			<table class="table-auto w-full">
-				<thead>
-					<tr>
-						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tl-md">Name</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Email</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Status</th>
-						<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tr-md"></th>
-					</tr>
-				</thead>
-				<tbody>
-					for _, user := range users {
-						<tr class="group">
-							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Name }</td>
-							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Email }</td>
-							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
-								<span { statusAttributes(user.Status)... }>
-									{ statusLabel(user.Status) }
-								</span>
-							</td>
-							<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
-								<div class="flex justify-end items-center space-x-4">
-									<a class="flex items-center font-medium text-neutral-300 hover:text-white" href={ templ.SafeURL(fmt.Sprintf("/users/%d", user.ID)) }>
-										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
-										View
-									</a>
-								</div>
-							</td>
+			if len(users) == 0 {
+				<p class="px-4 py-4 text-center">No results.</p>
+			} else {
+				<table class="table-auto w-full">
+					<thead>
+						<tr>
+							<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tl-md">Name</th>
+							<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Email</th>
+							<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800">Status</th>
+							<th class="text-left px-4 py-2 border-b border-neutral-700 bg-neutral-800 rounded-tr-md"></th>
 						</tr>
-					}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						for _, user := range users {
+							<tr class="group">
+								<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Name }</td>
+								<td class="text-left px-4 py-2 group-hover:bg-neutral-800">{ user.Email }</td>
+								<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
+									<span { statusAttributes(user.Status)... }>
+										{ statusLabel(user.Status) }
+									</span>
+								</td>
+								<td class="text-left px-4 py-2 group-hover:bg-neutral-800">
+									<div class="flex justify-end items-center space-x-4">
+										<a class="flex items-center font-medium text-neutral-300 hover:text-white" href={ templ.SafeURL(fmt.Sprintf("/users/%d", user.ID)) }>
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+											View
+										</a>
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
 		</div>
 		<div id="pagination" class="flex items-center space-x-4 mt-4">
 			@paginationItem(fmt.Sprintf("/users-table?page=%d", prev.Value), prev.Disabled) {
