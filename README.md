@@ -4,9 +4,9 @@
 
 This project is a part of a series of videos on the Web Dev Fuel channel.
 
-[Go & HTMX Data Dashboard - Live WebSocket Notifications](https://www.youtube.com/watch?v=DXCJNfgExWk)
-[Go & HTMX Data Dashboard - Data Table](https://www.youtube.com/watch?v=oBjsh0A-S6U)
-[HTMX & Go Data Dashboard - Charts](https://www.youtube.com/watch?v=tr_MW-y70T0)
+[Go & HTMX Data Dashboard - Live WebSocket Notifications](https://www.youtube.com/watch?v=DXCJNfgExWk)<br/>
+[Go & HTMX Data Dashboard - Data Table](https://www.youtube.com/watch?v=oBjsh0A-S6U)<br/>
+[HTMX & Go Data Dashboard - Charts](https://www.youtube.com/watch?v=tr_MW-y70T0)<br/>
 [Go & HTMX Data Dashboard - Search](https://www.youtube.com/watch?v=fMwQpH36688)
 
 ## Set Up Project
