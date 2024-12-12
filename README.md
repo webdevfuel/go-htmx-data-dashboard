@@ -80,4 +80,29 @@ To install it, run the command below to copy the minified JS file from the CDN t
 wget https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js -O ./static/chart.min.js
 ```
 
+## Set Up HTMX
+
+To be able to have frontend interactivity, we're using the HTMX library.
+
+To install it, run the command below to copy the minified JS file from the CDN to the `static` directory.
+
+```bash
+wget https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js -O ./static/htmx.min.js
+```
+
+Since we're using WebSockets to have live notifications (e.g. on user creation), we also want to install the HTMX extension.
+
+```bash
+wget https://unpkg.com/htmx-ext-ws@2.0.1/ws.js -O ./static/ws.js
+```
+
 ## Set Up Static Files
+
+Finally, to set up the static files, simply copy them from the assets directory into the static directory.
+
+```bash
+cp assets/table.js static/
+cp assets/pagination.js static/
+cp assets/notification.js static/
+cp assets/chart.js static/
+```
