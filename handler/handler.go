@@ -195,7 +195,7 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var id int
 
 	err = h.bundb.NewRaw(
-		"insert into users (email, name, status, created_at) values (?, ?, ?, ?);",
+		"insert into users (email, name, status, created_at) values (?, ?, ?, ?) returning id;",
 		data.Email,
 		data.Name,
 		data.Status,
